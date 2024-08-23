@@ -2,30 +2,47 @@ require "spec_helper"
 require "signup"
 
 describe Signup do
+  let(:email) { "user@example.com" }
+  let(:account_name) { "Example" }
+
+  let(:signup) { Signup.new(email: email, account_name: account_name) }
+
+  let(:account) { double("account") }
+  let(:user) { double("user") }
+
   describe "#save" do
     it "creates an account with one user" do
-      signup = Signup.new(email: "user@example.com", account_name: "Example")
+      expect(Account).to(
+        receive(:create!)
+          .with(name: account_name)
+          .and_return(account)
+      )
+      expect(User).to(
+        receive(:create!)
+          .with(account: account, email: email)
+          .and_return(user)
+      )
 
-      result = signup.save
-
-      expect(Account.count).to eq(1)
-      expect(Account.last.name).to eq("Example")
-      expect(User.count).to eq(1)
-      expect(User.last.email).to eq("user@example.com")
-      expect(User.last.account).to eq(Account.last)
-      expect(result).to be(true)
+      expect(signup.save).to be(true)
     end
   end
 
   describe "#user" do
     it "returns the user created by #save" do
-      signup = Signup.new(email: "user@example.com", account_name: "Example")
+      allow(Account).to(
+        receive(:create!)
+          .with(name: account_name)
+          .and_return(account)
+      )
+      allow(User).to(
+        receive(:create!)
+          .with(account: account, email: email)
+          .and_return(user)
+      )
+
       signup.save
 
-      result = signup.user
-
-      expect(result.email).to eq("user@example.com")
-      expect(result.account.name).to eq("Example")
+      expect(signup.user).to eq(user)
     end
   end
 end
